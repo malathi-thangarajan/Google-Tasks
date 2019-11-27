@@ -1,0 +1,10 @@
+{
+    "client_id": "748964607320-0i0vqbi2g2iicr9c50ne61u1jt1863l4.apps.googleusercontent.com",
+    "client_secret": "RpNmI6BB5--g6vHVqPGN8kjA",
+    "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://www.googleapis.com/oauth2/v4/token",
+    "options": {
+      "scope": "https://www.googleapis.com/auth/tasks"
+    },
+    "token_type": "account"
+}
