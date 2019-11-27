@@ -9,5 +9,9 @@
         }
       }
     }
-  }
+  },
+  "whitelisted-domains": [
+    "https://*.google.com",
+    "https://*.googleapis.com"
+  ]
 }
