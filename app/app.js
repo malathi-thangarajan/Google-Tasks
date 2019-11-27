@@ -4,19 +4,11 @@ $(document).ready( function() {
           var client = _client;
           client.events.on('app.activated',
             function() {
-                client.data.get('requester')
-                    .then(function(data) {
-                        $('#apptext').text("Ticket created by " + data.requester.name);
-                    })
-                    .catch(function(e) {
-                        console.log('Exception - ', e);
-                    });
-                    console.log("going to call the list tasks api.");
-                    var self = this,
-                        headers = { Authorization: "bearer <%= access_token %>"},
+                var self = this,
+                        headers = { Authorization: "Bearer <%= access_token %>",
+                                    Accept : "*/*", "Cache-Control" : "no-cache"},
                         reqData = { headers: headers, isOAuth: true },
                         url = "https://www.googleapis.com/tasks/v1/users/@me/lists?key=AIzaSyBtXBBgIIUHqeDz_dcui7p8Iroujhq5OAI";
-                    console.log("going to call the list tasks api. One step ahead.");
                     client.request.get(url, reqData).then(
                         function(data) {
                            console.log("tasks lists: ", data);
@@ -29,6 +21,6 @@ $(document).ready( function() {
                           //handleError(error);
                         }
                     );
+            });
         });
-    });
 });
