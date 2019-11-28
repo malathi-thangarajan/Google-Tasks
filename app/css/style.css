@@ -65,6 +65,18 @@ body{
     padding:0;
     margin:0;
 }
+.taskList{
+    width: 100%;
+    height: 25px;
+    min-height: 43px;
+    position: relative;
+    font-size: 16px;
+    border-bottom: 2px solid;
+    border-color: black;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0 5px;
+}
 .item{
     width: 100%;
     height: 45px;
@@ -120,6 +132,20 @@ body{
     background-color:lavender;
     padding: 10px;
     border-top: 1px solid rgba(0,0,0,0.1);
+}
+.add-task-list{
+    display: flex;
+    position: relative;
+    width: 100%;
+    height:45px;
+    background-color: aliceblue;
+    padding: 10px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+.add-task-list i{
+    position: relative;
+    font-size: 25px;
+    color: cornflowerblue;
 }
 .add-to-do i{
     position: relative;

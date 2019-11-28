@@ -1,9 +1,12 @@
 var client;
-var list, input;
+var list, input, taskList;
 const CHECK = "fa-check-circle";
 const UNCHECK = "fa-circle-thin";
-const LINE_THROUGH = "lineThrough";
-var id, globalTaskListID;
+const LINE_THROUGH = "lineThrough", POSITION = "beforeend";
+var id;
+var parentDiv;
+
+var taskCreateInput;
 
 $(document).ready( function() {
 	app.initialized()
@@ -12,15 +15,29 @@ $(document).ready( function() {
 			client.events.on('app.activated',
 				function() {
 				    id = 0;
+					taskList = document.getElementById("taskList");
+					parentDiv = document.getElementById("taskListDiv");
+					taskCreateInput = document.getElementById("taskList-text-box");
+					taskCreateInput.addEventListener("keyup",function(event){
+						if(event.keyCode === 13){
+
+							if(taskCreateInput.value){
+								removeTextAndInsertSelect(taskCreateInput, taskList);
+								createTaskList(taskCreateInput.value, (res) => getTaskList(loadTaskLists));
+							}
+							input.value = "";
+						}
+					});
+
+					parentDiv.removeChild(taskCreateInput);
 					list = document.getElementById("list");
 					input = document.getElementById("input");
 					//add an item to the list
 					document.addEventListener("keyup",function(event){
 						if(event.keyCode === 13){
-							const toDo = input.value;
 							//if the input isnt empty
-							if(toDo){
-								createTask(globalTaskListID, toDo, "", undefined, addSingletask);
+							if(input.value){
+								createTask(input.value, "", undefined, addSingletask);
 							}
 							input.value = "";
 						}
@@ -33,16 +50,26 @@ $(document).ready( function() {
 						if (elementJob !== undefined) {
 							const clickValue = elementJob.value;
 							if (clickValue === "complete") {
-								isChecked = element.attributes.class === CHECK;
-								updateTaskStatus(globalTaskListID, element.attributes.taskID.value, isChecked, completeToDo, element);
+								// Old Checked Status
+								isAlreradyCompleted = element.attributes.isCompleted.value;
+								updateTaskStatus(element.attributes.taskID.value, isAlreradyCompleted != "true", completeToDo, element);
 							} else if (clickValue === "delete") {
-								deleteTask(globalTaskListID, element.attributes.taskID.value, removeToDo, element);
+								deleteTask(element.attributes.taskID.value, removeToDo, element);
 							}
 						}
 					});
 
-					getTaskList(initDefaultTaskList);
-					//createTask("MTM1OTc4MDU2OTE5NjgyNTIxMDY6MDow", "My Task 12", "Notes for My Task 12", (new Date()).toISOString(), addSingletask);
+					document.getElementById("taskCreate").addEventListener("click", function (event) {
+
+						parentDiv.removeChild(taskList);
+						parentDiv.appendChild(taskCreateInput);
+					});
+
+					taskList.addEventListener("change", (event) => {
+						getTasks(loadTasks);
+					});
+
+					getTaskList(loadTaskLists);
 
 					/**
 					 ***** Sample Methods ************************
@@ -61,6 +88,11 @@ $(document).ready( function() {
 		});
 });
 
+function removeTextAndInsertSelect(textBox, selectOpt) {
+	parentDiv.removeChild(textBox);
+	parentDiv.appendChild(selectOpt);
+}
+
 
 // TASK LIST RELATED METHODS
 
@@ -68,9 +100,9 @@ function getTaskList(successCallBack) {
 	invokeAPI("https://www.googleapis.com/tasks/v1/users/@me/lists", 'GET', undefined, successCallBack);
 }
 
-function createTaskList(title) {
+function createTaskList(title, successCallBack) {
 	reqData = {title: title};
-	invokeAPI("https://www.googleapis.com/tasks/v1/users/@me/lists", 'POST', reqData);
+	invokeAPI("https://www.googleapis.com/tasks/v1/users/@me/lists", 'POST', reqData, successCallBack);
 }
 
 function updateTaskList(taskListID, title) {
@@ -85,14 +117,14 @@ function deleteTaskList(taskListID) {
 
 // TASK RELATED METHODS
 
-function getTasks(taskListId, successCallBack) {
-	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + taskListId + "/tasks", 'GET', undefined, successCallBack);
+function getTasks(successCallBack) {
+	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + getTaskListID() + "/tasks", 'GET', undefined, successCallBack);
 }
 
-function createTask(taskListId, title, notes, timeStamp, successCallBack) {
+function createTask(title, notes, timeStamp, successCallBack) {
 	// @TODO Need to update a due time stamp
 	var reqData = {title:title, notes:notes};
-	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + taskListId + "/tasks", 'POST', reqData, successCallBack);
+	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + getTaskListID() + "/tasks", 'POST', reqData, successCallBack);
 }
 
 function updateTask(taskListId, taskID, title, notes, timeStamp) {
@@ -100,17 +132,17 @@ function updateTask(taskListId, taskID, title, notes, timeStamp) {
 	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + taskListId + "/tasks/" + taskID, 'PUT', reqData);
 }
 
-function updateTaskStatus(taskListId, taskID, isCompleted, successCallBack, element) {
+function updateTaskStatus(taskID, isCompleted, successCallBack, element) {
 	var reqData = { id:taskID, status:"needsAction"};
 	if (isCompleted)
 	{
 		reqData.status = "completed";
 	}
-	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + taskListId + "/tasks/" + taskID, 'PUT', reqData, successCallBack, undefined, element);
+	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + getTaskListID() + "/tasks/" + taskID, 'PUT', reqData, successCallBack, undefined, element);
 }
 
-function deleteTask(taskListId, taskID, successCallBack, additionalParams) {
-	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + taskListId + "/tasks/" + taskID, 'DELETE', undefined, successCallBack, undefined, additionalParams);
+function deleteTask(taskID, successCallBack, additionalParams) {
+	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + getTaskListID() + "/tasks/" + taskID, 'DELETE', undefined, successCallBack, undefined, additionalParams);
 }
 
 // To make a global API call.
@@ -147,17 +179,17 @@ function invokeAPI(url, method, data, successCallBack, failureCallBack, addition
 	target.then(
 		function(response) {
 
-			console.log(response);
+			//console.log(response);
 			// If there is no content then we will ignore the response.
 			if (response.status !== 204) {
 				var r = JSON.parse(response.response);
-				console.log("Success Response: ", r);
+				//console.log("Success Response: ", r);
 			}
 			handleCallback(successCallBack, response, additionalParams);
 		},
 		function(error) {
-			console.log("error:", error);
-			console.log("error status:", error.status);
+			//console.log("error:", error);
+			//console.log("error status:", error.status);
 			handleCallback(failureCallBack, error, additionalParams);
 		}
 	);
@@ -180,7 +212,7 @@ function handleCallback(callback, arg, additionalParams) {
 // ************************************************************************************************************
 // ************************************************************************************************************
 
-function initDefaultTaskList(res) {
+/*function initDefaultTaskList(res) {
 
 	array = JSON.parse(res.response).items;
 	if (array === undefined || array[0] === undefined)
@@ -190,21 +222,29 @@ function initDefaultTaskList(res) {
 	else
 	{
 		globalTaskListID = array[0].id;
-		getTasks(globalTaskListID, loadList);
+		getTasks(globalTaskListID, loadTasks);
 	}
 }
 
 function initDefaultTaskListAfterCreate(res) {
 	array = JSON.parse(res.response).items;
 	globalTaskListID = array[0].id;
-	getTasks(globalTaskListID, loadList);
-}
+	getTasks(globalTaskListID, loadTasks);
+}*/
 
 //complete to do
 function completeToDo(agr, element )
 {
 	element.classList.toggle(CHECK);
 	element.classList.toggle(UNCHECK);
+	if (element.attributes.isCompleted.value == "true")
+	{
+		element.attributes.isCompleted.value = "false";
+	}
+	else
+	{
+		element.attributes.isCompleted.value = "true";
+	}
 	element.parentNode.querySelector(".text").classList.toggle(LINE_THROUGH);
 }
 
@@ -214,19 +254,54 @@ function removeToDo( agr, element){
 }
 
 //load items to the user's interface
-function loadList(obj){
-
-	while((lis = list.getElementsByTagName("li")).length > 0)
-	{
+function loadTasks(obj) {
+	while ((lis = list.getElementsByTagName("li")).length > 0) {
 		list.removeChild(lis[0]);
 	}
 	id = 0;
 	array = JSON.parse(obj.response).items;
-	array.sort(compare);
+	// Empty Array Handling
+	if (array !== undefined) {
+		array.sort(compare);
+		array.forEach(function (item) {
+			addToDo(item.title, ++id, item.id, item.status === "completed", false);
+		});
+	}
+}
+
+function loadTaskLists(obj){
+	// console.log("Lask List:", obj);
+	// Remove all the old tasks.
+	while ((lis = taskList.getElementsByTagName("option")).length > 0) {
+		taskList.removeChild(lis[0]);
+	}
+
+	array = JSON.parse(obj.response).items;
+	let count = 1;
 	array.forEach(function(item){
-		addToDo(item.title, ++id, item.id, item.status === "completed", false);
+		addTaskList(item.title, item.id, count++);
 	});
-	setInterval(getTasks, (1000 * 60), globalTaskListID, loadList);
+	getTasks(loadTasks);
+	setInterval(getTasks, (1000 * 100), loadTasks);
+}
+
+function addTaskList(title, id, count){
+	const selected = count === 1 ? "selected" : "";
+	const item = `
+            <option class="optionItem" id="${id}" ${selected}>
+            ${title}
+            </option>
+            `;
+	taskList.insertAdjacentHTML(POSITION, item);
+}
+
+function getTaskListID() {
+	const ele = taskList.options[taskList.selectedIndex];
+	if (ele !== undefined)
+	{
+		return ele.id;
+	}
+	return undefined;
 }
 
 function addSingletask(obj) {
@@ -246,7 +321,7 @@ function addToDo(toDo, id, taskID, done, trash){
 	const COLOR = id % 2 === 0 ? "": "#FAF5FC";
 	const item = `
             <li class="item" style="background: ${COLOR}">
-            <i class="fa ${DONE} co" job="complete" taskID="${taskID}" id="${id}"></i>
+            <i class="fa ${DONE} co" job="complete" isCompleted="${done}" taskID="${taskID}" id="${id}"></i>
             <p class="text ${LINE}">${toDo}</p>
             <i class="fa fa-trash-o de" job="delete" taskID="${taskID}" id="${id}"></i>
             </li>
