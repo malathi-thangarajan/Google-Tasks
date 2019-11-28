@@ -12,7 +12,7 @@ fdk run
 ```
 
 ### Testing the app
-Then login to your domain `https://domain.freshservice.com/helpdesk/tickets/1?dev=true`. Test your app as mentioned [here](https://developers.freshservice.com/docs/quick-start/#test_your_app).
+Then login to your domain `https://domain.freshservice.com/helpdesk/tickets/1?dev=true`. Test the app as mentioned [here](https://developers.freshservice.com/docs/quick-start/#test_your_app).
 
 ### Screenshots
 ![App asking agent to authorize](screenshots/oauth2_authorize.jpg)
