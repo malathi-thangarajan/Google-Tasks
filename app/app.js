@@ -271,21 +271,25 @@ function loadTasks(obj) {
 function loadTaskLists(obj){
 	// console.log("Lask List:", obj);
 	// Remove all the old tasks.
+	let taskListID = getTaskListID();
 	while ((lis = taskList.getElementsByTagName("option")).length > 0) {
 		taskList.removeChild(lis[0]);
 	}
 
 	array = JSON.parse(obj.response).items;
-	let count = 1;
+	if (array !== undefined && taskListID === undefined)
+	{
+		taskListID = array[0].id;
+	}
 	array.forEach(function(item){
-		addTaskList(item.title, item.id, count++);
+		addTaskList(item.title, item.id, taskListID === item.id);
 	});
 	getTasks(loadTasks);
-	setInterval(getTasks, (1000 * 100), loadTasks);
+	setInterval(getTaskList, (1000 * 60), loadTaskLists);
 }
 
-function addTaskList(title, id, count){
-	const selected = count === 1 ? "selected" : "";
+function addTaskList(title, id, isSelected){
+	const selected = isSelected ? "selected" : "";
 	const item = `
             <option class="optionItem" id="${id}" ${selected}>
             ${title}
