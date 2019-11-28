@@ -148,7 +148,6 @@ function deleteTask(taskID, successCallBack, additionalParams) {
 // To make a global API call.
 function invokeAPI(url, method, data, successCallBack, failureCallBack, additionalParams)
 {
-	url = url + "?key=AIzaSyBtXBBgIIUHqeDz_dcui7p8Iroujhq5OAI";
 	let headers = { Authorization: "Bearer <%= access_token %>",
 		Accept : "*/*", "Cache-Control" : "no-cache",
 		"Content-Type" : "application/json"};
