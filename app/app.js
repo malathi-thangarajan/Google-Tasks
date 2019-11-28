@@ -20,20 +20,24 @@ $(document).ready( function() {
 							const toDo = input.value;
 							//if the input isnt empty
 							if(toDo){
-								createTask(globalTaskListID, toDo, "", (new Date()).toISOString(), addSingletask);
+								createTask(globalTaskListID, toDo, "", undefined, addSingletask);
 							}
 							input.value = "";
 						}
 					});
 
 					//target the items created dynamically
-					list.addEventListener("click", function(event){
+					list.addEventListener("click", function(event) {
 						const element = event.target; //return the clicked element inside the list
-						const elementJob = element.attributes.job.value;
-						if(elementJob === "complete"){
-							updateTaskAsCompleted(globalTaskListID, element.attributes.taskID.value, completeToDo, element);
-						} else if(elementJob === "delete"){
-							deleteTask(globalTaskListID, element.attributes.taskID.value, removeToDo, element);
+						const elementJob = element.attributes.job;
+						if (elementJob !== undefined) {
+							const clickValue = elementJob.value;
+							if (clickValue === "complete") {
+								isChecked = element.attributes.class === CHECK;
+								updateTaskStatus(globalTaskListID, element.attributes.taskID.value, isChecked, completeToDo, element);
+							} else if (clickValue === "delete") {
+								deleteTask(globalTaskListID, element.attributes.taskID.value, removeToDo, element);
+							}
 						}
 					});
 
@@ -86,7 +90,8 @@ function getTasks(taskListId, successCallBack) {
 }
 
 function createTask(taskListId, title, notes, timeStamp, successCallBack) {
-	var reqData = {title:title, notes:notes, due:timeStamp};
+	// @TODO Need to update a due time stamp
+	var reqData = {title:title, notes:notes};
 	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + taskListId + "/tasks", 'POST', reqData, successCallBack);
 }
 
@@ -95,8 +100,12 @@ function updateTask(taskListId, taskID, title, notes, timeStamp) {
 	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + taskListId + "/tasks/" + taskID, 'PUT', reqData);
 }
 
-function updateTaskAsCompleted(taskListId, taskID, successCallBack, element) {
-	var reqData = { id:taskID, status:"completed"};
+function updateTaskStatus(taskListId, taskID, isCompleted, successCallBack, element) {
+	var reqData = { id:taskID, status:"needsAction"};
+	if (isCompleted)
+	{
+		reqData.status = "completed";
+	}
 	invokeAPI("https://www.googleapis.com/tasks/v1/lists/" + taskListId + "/tasks/" + taskID, 'PUT', reqData, successCallBack, undefined, element);
 }
 
@@ -250,10 +259,10 @@ function compare( a, b ) {
 	let d1 = new Date(a.updated).getTime();
 	let d2 = new Date(b.updated).getTime();
 	if ( d1 < d2 ){
-		return 1;
+		return -1;
 	}
 	if ( d1 > d2 ){
-		return -1;
+		return 1;
 	}
 	return 0;
 }
