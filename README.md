@@ -6,7 +6,7 @@ This app let `freshservice` agents login to their Google account and then let th
 - [fdk](https://developers.freshservice.com/docs/quick-start/#install_the_sdk) - Freshworks Developer Kit
 
 ### How to run the app?
-Clone this app with git client. Add the `client_id`, `client_key`, `key` of your google app in the `config/sample_oauth_config.json` and rename it to `config/oauth_config.json`. Start the app using the command,
+Clone this app with git client. Add the `client_id`, `client_key`, `key` of your google app in the `sample_oauth_config.json` and add the contents in it to `config/oauth_config.json`. Start the app using the command,
 ```
 fdk run
 ```
