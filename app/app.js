@@ -37,8 +37,6 @@ $(document).ready( function() {
 						}
 					});
 
-
-
 					getTaskList(initDefaultTaskList);
 					//createTask("MTM1OTc4MDU2OTE5NjgyNTIxMDY6MDow", "My Task 12", "Notes for My Task 12", (new Date()).toISOString(), addSingletask);
 
@@ -208,10 +206,18 @@ function removeToDo( agr, element){
 
 //load items to the user's interface
 function loadList(obj){
+
+	while((lis = list.getElementsByTagName("li")).length > 0)
+	{
+		list.removeChild(lis[0]);
+	}
+	id = 0;
 	array = JSON.parse(obj.response).items;
+	array.sort(compare);
 	array.forEach(function(item){
 		addToDo(item.title, ++id, item.id, item.status === "completed", false);
 	});
+	setInterval(getTasks, (1000 * 60), globalTaskListID, loadList);
 }
 
 function addSingletask(obj) {
@@ -227,8 +233,10 @@ function addToDo(toDo, id, taskID, done, trash){
 	}
 	const DONE = done ? CHECK : UNCHECK;
 	const LINE = done ? LINE_THROUGH : "";
+	//#E6FFFF
+	const COLOR = id % 2 === 0 ? "": "#FAF5FC";
 	const item = `
-            <li class="item">
+            <li class="item" style="background: ${COLOR}">
             <i class="fa ${DONE} co" job="complete" taskID="${taskID}" id="${id}"></i>
             <p class="text ${LINE}">${toDo}</p>
             <i class="fa fa-trash-o de" job="delete" taskID="${taskID}" id="${id}"></i>
@@ -236,4 +244,16 @@ function addToDo(toDo, id, taskID, done, trash){
             `;
 	const position = "beforeend";
 	list.insertAdjacentHTML(position,item);
+}
+
+function compare( a, b ) {
+	let d1 = new Date(a.updated).getTime();
+	let d2 = new Date(b.updated).getTime();
+	if ( d1 < d2 ){
+		return 1;
+	}
+	if ( d1 > d2 ){
+		return -1;
+	}
+	return 0;
 }
